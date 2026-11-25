@@ -33,3 +33,6 @@ _cov/
 .cover-candidates/
 .background/
 docs/重建仓库步骤.md
+
+_narr*/
+_rate/

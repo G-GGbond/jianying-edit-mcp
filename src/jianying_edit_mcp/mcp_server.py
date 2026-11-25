@@ -136,6 +136,31 @@ TOOLS = [
         },
     },
     {
+        "name": "jy_narrate",
+        "description": (
+            "一键口播配音：读剧本 JSON（每句含 start/end/text/可选 direction），"
+            "逐句合成、压到时间槽、拼成整轨，可按需输出 EDL。"
+            "支持 edge（免费联网）/ voicestudio（可克隆音色+语气控制）/ sapi。"
+            "语气用自然语言写在 direction 里，如「沉稳男声，纪录片旁白感」。"
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "scriptPath": {"type": "string", "description": "口播脚本 JSON 路径（必填）。"},
+                "outDir": {"type": "string", "description": "输出目录（必填）。"},
+                "backend": {"type": "string", "enum": ["edge", "voicestudio", "sapi"], "description": "TTS 后端。"},
+                "url": {"type": "string", "description": "VoiceStudio 地址，如 http://192.168.1.50:3900。"},
+                "refAudio": {"type": "string", "description": "音色克隆的参考录音路径。"},
+                "refText": {"type": "string", "description": "参考录音对应的原文。"},
+                "direction": {"type": "string", "description": "全局语气描述。"},
+                "autoRateFit": {"type": "boolean", "description": "文案超时自动压缩。"},
+                "edlPath": {"type": "string", "description": "输出 EDL 的路径（可选）。"},
+                "subtitles": {"type": "boolean", "description": "EDL 附带字幕轨。"},
+            },
+            "required": ["scriptPath", "outDir"],
+        },
+    },
+    {
         "name": "jy_music",
         "description": (
             "搜索剪映云端曲库（内置 615 首，含中英文）。"
@@ -276,6 +301,19 @@ def tool_jy_inspect(args):
     return call_engine("inspect", {"draft": args["draftDir"]})
 
 
+def tool_jy_narrate(args):
+    params = {"script": args["scriptPath"], "out": args["outDir"]}
+    for src_k, dst_k in (("backend", "backend"), ("url", "url"), ("refAudio", "ref-audio"),
+                         ("refText", "ref-text"), ("direction", "direction"),
+                         ("edlPath", "edl")):
+        if args.get(src_k):
+            params[dst_k] = args[src_k]
+    if args.get("autoRateFit"):
+        params["auto-rate-fit"] = True
+    if args.get("subtitles"):
+        params["subtitles"] = True
+    return call_engine("narrate", params)
+
 def tool_jy_music(args):
     params = {}
     if args.get("keyword"):
@@ -314,6 +352,7 @@ HANDLERS = {
     "jy_build": tool_jy_build,
     "jy_render": tool_jy_render,
     "jy_inspect": tool_jy_inspect,
+    "jy_narrate": tool_jy_narrate,
     "jy_music": tool_jy_music,
     "jy_cover": tool_jy_cover,
     "jy_beat": tool_jy_beat,

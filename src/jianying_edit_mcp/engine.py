@@ -320,6 +320,89 @@ def cmd_beat(args):
     emit(info)
 
 
+def cmd_narrate(args):
+    """一键配音：读口播脚本 → 逐句合成 → 压到时间槽 → 拼成整轨 → 可选出 EDL。"""
+    from . import narration as narr
+    from . import pronounce as pron
+
+    with open(args.script, encoding="utf-8") as f:
+        script = json.load(f)
+
+    voice_cfg = script.get("voice") or {}
+    backend = args.backend or voice_cfg.get("backend") or "edge"
+    url = args.url or voice_cfg.get("url") or "http://127.0.0.1:3900"
+    ref_audio = args.ref_audio or voice_cfg.get("refAudio")
+    ref_text = args.ref_text or voice_cfg.get("refText")
+    direction = args.direction or script.get("defaultDirection") or voice_cfg.get("direction")
+    engine_name = args.engine or voice_cfg.get("engine")
+    voice_name = args.voice or voice_cfg.get("voice")
+    rate_str = args.rate
+    auto_fit = bool(args.auto_rate_fit or script.get("autoRateFit"))
+
+    raw_lines = script.get("lines") or []
+    if not raw_lines:
+        raise SystemExit("脚本里没有 lines")
+
+    lines = []
+    for ln in raw_lines:
+        text = ln.get("text") or ""
+        if not args.no_normalize:
+            text = pron.normalize(text)
+        lines.append({
+            "start": ln.get("start", 0.0),
+            "end": ln.get("end", 3.0),
+            "text": text,
+            "direction": ln.get("direction"),
+            "textSource": ln.get("text"),
+        })
+
+    result = narr.generate_narration(
+        lines, args.out, backend=backend, voice=voice_name, rate_str=rate_str,
+        voicestudio_url=url, engine=engine_name,
+        ref_audio=ref_audio, ref_text=ref_text, default_direction=direction,
+        auto_rate_fit=auto_fit,
+    )
+
+    # 拼成整轨并做响度标准化
+    full = os.path.join(args.out, "narration-full.wav")
+    narr.concat_with_silence(result["fittedFiles"], full)
+    normalized = os.path.join(args.out, "narration.wav")
+    ff = os.environ.get("DSH_FFMPEG_PATH") or "ffmpeg"
+    run_proc([
+        ff, "-hide_banner", "-loglevel", "error", "-i", full,
+        "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ar", "44100", "-ac", "2",
+        normalized, "-y",
+    ], 600)
+
+    result["narrationTrack"] = normalized if os.path.isfile(normalized) else full
+    result["duration"] = round(narr.probe_duration(result["narrationTrack"]), 3)
+
+    # 可选：直接生成 EDL（解说轨 + 字幕轨），供 jy_build 用
+    if args.edl:
+        edl = {
+            "name": script.get("name") or "narration",
+            "canvas": script.get("canvas") or {"width": 1920, "height": 1080, "fps": 30},
+            "tracks": [{
+                "type": "audio", "name": "解说", "start": 0,
+                "clips": [{"src": result["narrationTrack"], "in": 0,
+                           "duration": round(result["duration"] + 0.2, 2)}],
+            }],
+        }
+        if args.subtitles:
+            edl["tracks"].append({
+                "type": "text", "name": "解说字幕",
+                "texts": [{
+                    "start": r["start"], "duration": round(r["slot"] - 0.1, 2),
+                    "text": r["text"], "style": {"size": 6, "transformY": -0.78},
+                } for r in result["lines"]],
+            })
+        with open(args.edl, "w", encoding="utf-8") as f:
+            json.dump(edl, f, ensure_ascii=False, indent=2)
+        result["edl"] = args.edl
+
+    emit(result)
+
+
 def cmd_build(args):
     import pyJianYingDraft as draft
     from pyJianYingDraft import ClipSettings, TextStyle, TrackSpec, TrackType, trange_seconds
@@ -397,6 +480,7 @@ def cmd_build(args):
                         mat,
                         trange_seconds(cursor, duration=dur),
                         source_timerange=trange_seconds(inpoint, duration=dur),
+                        volume=float(clip.get("volume", 1.0)),
                     )
                 elif cloud_key:
                     # 云端曲库音乐：草稿里只存 music_id，剪映【在界面打开工程时】才按 id 在线解析。
@@ -437,7 +521,7 @@ def cmd_build(args):
                     )
                 if clip.get("fadeIn") or clip.get("fadeOut"):
                     seg.add_fade(f"{clip.get('fadeIn', 0)}s", f"{clip.get('fadeOut', 0)}s")
-                if clip.get("volume") is not None:
+                if clip.get("volume") is not None and kind == "audio":
                     seg.volume = float(clip["volume"])
                 script.add_segment(seg, tname)
                 stats["segments"] += 1
@@ -693,6 +777,26 @@ def main():
     bt.add_argument("--durations", nargs="*", type=float, default=None,
                     help="镜头时长列表（秒）；给了就顺带算卡点结果")
     bt.set_defaults(func=cmd_beat)
+
+    nr = sub.add_parser("narrate", parents=[common])
+    nr.add_argument("--script", required=True, help="口播脚本 JSON（含 lines: start/end/text）")
+    nr.add_argument("--out", required=True, help="输出目录")
+    nr.add_argument("--backend", default=None, choices=["edge", "voicestudio", "sapi"],
+                    help="TTS 后端；留空读脚本里的 voice.backend，否则用 edge")
+    nr.add_argument("--url", default=None, help="VoiceStudio 地址，如 http://192.168.1.50:3900")
+    nr.add_argument("--engine", default=None, help="VoiceStudio 引擎名，如 omnivoice-gguf")
+    nr.add_argument("--voice", default=None, help="edge 语音名，如 zh-CN-YunyangNeural")
+    nr.add_argument("--rate", default="+0%", help="edge 语速，如 +15%%")
+    nr.add_argument("--ref-audio", default=None, help="音色克隆的参考录音（10 秒以上）")
+    nr.add_argument("--ref-text", default=None, help="参考录音对应的文字")
+    nr.add_argument("--direction", default=None,
+                    help="全局语气描述，如「沉稳有力的男声，语速适中」")
+    nr.add_argument("--auto-rate-fit", action="store_true",
+                    help="文案超槽时让 VoiceStudio 自动改写压缩")
+    nr.add_argument("--no-normalize", action="store_true", help="不做数字/型号读法规范化")
+    nr.add_argument("--edl", default=None, help="按需输出 EDL（解说轨 + 字幕轨）")
+    nr.add_argument("--subtitles", action="store_true", help="EDL 里附带字幕轨")
+    nr.set_defaults(func=cmd_narrate)
 
     m = sub.add_parser("music", parents=[common])
     m.add_argument("--keyword", default="", help="按标题关键词搜索，留空则列出前 N 首")

@@ -1,0 +1,14 @@
+{
+  "name": "展会解说验证",
+  "voiceNote": "2026读二零二六；T536读T五三六；FCU按字母F-C-U",
+  "lines": [
+    { "index": 1, "start": 0.0,  "end": 4.0,  "visual": "展会门口 PV POWER EXPO 大牌", "text": "2026 上海，光伏与智慧能源展。" },
+    { "index": 2, "start": 4.0,  "end": 7.7,  "visual": "飞凌嵌入式展台全景", "text": "这里是飞凌嵌入式 FORLINX 展台。" },
+    { "index": 3, "start": 7.7,  "end": 11.4, "visual": "NXP 核心板产品墙", "text": "整墙核心板，覆盖 NXP、Rockchip 等主流平台。" },
+    { "index": 4, "start": 11.4, "end": 15.6, "visual": "T536 光伏箱变测控演示屏", "text": "重点看这套 T536 光伏箱变测控方案，从汇流箱到升压变，全链路打通。" },
+    { "index": 5, "start": 15.6, "end": 19.2, "visual": "Rockchip / NXP 矩阵墙", "text": "再到 Rockchip 与 NXP 的核心板矩阵，选型一站配齐。" },
+    { "index": 6, "start": 19.2, "end": 22.9, "visual": "FCU 边缘计算终端特写", "text": "桌面上的 FCU 系列，是面向现场的边缘计算终端。" },
+    { "index": 7, "start": 22.9, "end": 26.5, "visual": "展台客流", "text": "开展这几天，客商一直在展台深入交流。" },
+    { "index": 8, "start": 26.5, "end": 30.0, "visual": "展台全景收尾", "text": "飞凌嵌入式，让嵌入式方案更好落地。" }
+  ]
+}

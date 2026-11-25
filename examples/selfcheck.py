@@ -92,6 +92,52 @@ class McpClient:
             self.proc.kill()
 
 
+
+def make_test_media(out_dir):
+    """用 ffmpeg 造一段 12 秒测试素材 + 一段配乐，自检不依赖用户文件。"""
+    import subprocess
+    os.makedirs(out_dir, exist_ok=True)
+    ff = os.environ.get("DSH_FFMPEG_PATH") or "ffmpeg"
+    video = os.path.join(out_dir, "test-clip.mp4")
+    music = os.path.join(out_dir, "test-music.wav")
+    if not os.path.isfile(video):
+        subprocess.run([
+            ff, "-hide_banner", "-loglevel", "error",
+            "-f", "lavfi", "-i", "testsrc2=size=1280x720:rate=30:duration=12",
+            "-f", "lavfi", "-i", "sine=frequency=440:duration=12",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "28",
+            "-c:a", "aac", "-shortest", video, "-y",
+        ], capture_output=True, timeout=300)
+    if not os.path.isfile(music):
+        subprocess.run([
+            ff, "-hide_banner", "-loglevel", "error",
+            "-f", "lavfi", "-i", "sine=frequency=220:duration=12",
+            "-ar", "44100", "-ac", "2", music, "-y",
+        ], capture_output=True, timeout=120)
+    return video, music
+
+
+def build_test_edl(video, music, path):
+    """造一份只用测试素材的 EDL。"""
+    edl = {
+        "name": "selfcheck",
+        "canvas": {"width": 1920, "height": 1080, "fps": 30},
+        "tracks": [
+            {"type": "audio", "name": "music", "start": 0,
+             "clips": [{"src": music, "in": 0, "duration": 8, "fadeIn": 0.4, "fadeOut": 1.0}]},
+            {"type": "video", "name": "main", "start": 0,
+             "clips": [{"src": video, "in": 0, "duration": 4},
+                        {"src": video, "in": 4, "duration": 4}]},
+            {"type": "text", "name": "title",
+             "texts": [{"start": 0.3, "duration": 3, "text": "Self check",
+                         "style": {"size": 9, "transformY": -0.6}}]},
+        ],
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(edl, f, ensure_ascii=False, indent=2)
+    return path
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     env = dict(os.environ)
@@ -133,7 +179,9 @@ def main():
             print("\n环境未就绪，后续步骤跳过。先按上面的 hints 修好再跑。")
             return 1
 
-        built = client.call("jy_build", {"edlPath": DEMO_EDL, "outDir": out_dir})
+        video, music = make_test_media(out_dir)
+        edl_path = build_test_edl(video, music, os.path.join(out_dir, "selfcheck-edl.json"))
+        built = client.call("jy_build", {"edlPath": edl_path, "outDir": out_dir})
         print(f"[4] jy_build    {'OK' if built.get('ok') else 'FAIL'}  segments={built.get('segments')} "
               f"texts={built.get('texts')} duration={built.get('duration')}s encrypted={built.get('encrypted')}")
 

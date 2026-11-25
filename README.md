@@ -162,7 +162,7 @@ jianying-edit render --draft .\out\xxx_剪映可读 --out .\out\final.mp4
 
 ---
 
-## 八个工具
+## 九个工具
 
 | 工具 | 做什么 |
 |---|---|
@@ -170,6 +170,7 @@ jianying-edit render --draft .\out\xxx_剪映可读 --out .\out\final.mp4
 | `jy_build` | 剪辑方案（EDL JSON）→ 剪映草稿（同时给明文版和剪映可读版） |
 | `jy_render` | 调剪映自己的引擎无头导出 MP4 |
 | `jy_inspect` | 读草稿结构：轨道、片段数与时长、素材数量（加密草稿自动解密） |
+| `jy_narrate` | **一键口播配音**：脚本 → 逐句合成 → 压到时间槽 → 整轨 + EDL。支持音色克隆与语气控制 |
 | `jy_music` | 搜索剪映云端曲库（内置 615 首，含中英文） |
 | `jy_cover` | 封面选帧：按清晰度/曝光/对比度/构图挑候选（需视觉复核） |
 | `jy_beat` | 音乐节拍分析（BPM）与镜头时长卡点吸附 |
