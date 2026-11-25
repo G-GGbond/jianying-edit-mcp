@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jianying-edit-mcp"
+version = "0.3.0"
+description = "AI 剪映剪辑 MCP：让 AI 生成可二次修改的剪映工程，并调剪映自己的引擎无头出片"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "G-GGbond" }]
+keywords = ["mcp", "jianying", "capcut", "video", "ai", "剪映", "豆包"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows",
+  "Topic :: Multimedia :: Video",
+]
+dependencies = [
+  "pyJianYingDraft>=0.3.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+cover = ["opencv-python", "numpy"]
+
+[project.scripts]
+jianying-edit-mcp = "jianying_edit_mcp.mcp_server:main"
+jianying-edit = "jianying_edit_mcp.engine:main"
+
+[project.urls]
+Homepage = "https://github.com/G-GGbond/jianying-edit-mcp"
+Issues = "https://github.com/G-GGbond/jianying-edit-mcp/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+jianying_edit_mcp = ["*.json"]

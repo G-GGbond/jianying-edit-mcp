@@ -1,0 +1,95 @@
+{
+  "name": "展会介绍_插件验证",
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "tracks": [
+    {
+      "type": "audio",
+      "name": "音乐",
+      "start": 0,
+      "clips": [
+        {
+          "src": "D:/your-media/clip-01.mp4",
+          "in": 0,
+          "duration": 12.0,
+          "fadeIn": 0.4,
+          "fadeOut": 1.5,
+          "volume": 0.9
+        }
+      ]
+    },
+    {
+      "type": "video",
+      "name": "主画面",
+      "start": 0,
+      "clips": [
+        {
+          "src": "D:/your-media/clip-01.mp4",
+          "in": 0.8,
+          "duration": 4.0
+        },
+        {
+          "src": "D:/your-media/clip-01.mp4",
+          "in": 1.2,
+          "duration": 4.0
+        },
+        {
+          "src": "D:/your-media/clip-01.mp4",
+          "in": 1.6,
+          "duration": 4.0
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "主标题",
+      "texts": [
+        {
+          "start": 0.3,
+          "duration": 3.4,
+          "text": "2026 · 上海",
+          "style": {
+            "size": 12,
+            "transformY": -0.62
+          }
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "副标题",
+      "texts": [
+        {
+          "start": 0.3,
+          "duration": 3.4,
+          "text": "第十九届国际太阳能光伏和智慧能源大会",
+          "style": {
+            "size": 6,
+            "transformY": -0.78
+          }
+        },
+        {
+          "start": 4.4,
+          "duration": 3.4,
+          "text": "飞凌嵌入式 FORLINX",
+          "style": {
+            "size": 10,
+            "transformY": -0.62
+          }
+        },
+        {
+          "start": 8.4,
+          "duration": 3.4,
+          "text": "T536 光伏箱变测控方案",
+          "style": {
+            "size": 10,
+            "transformY": -0.62
+          }
+        }
+      ]
+    }
+  ]
+}

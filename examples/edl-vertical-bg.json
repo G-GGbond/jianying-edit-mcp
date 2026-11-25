@@ -1,0 +1,60 @@
+{
+  "name": "竖屏背景轨验证",
+  "autoBackground": {
+    "brightness": -0.14,
+    "blur": 32
+  },
+  "tracks": [
+    {
+      "clips": [
+        {
+          "duration": 8,
+          "fadeOut": 1,
+          "fadeIn": 0.4,
+          "in": 0,
+          "src": "D:/your-media/music.wav"
+        }
+      ],
+      "name": "音乐",
+      "type": "audio",
+      "start": 0
+    },
+    {
+      "clips": [
+        {
+          "duration": 4,
+          "in": 1.2,
+          "src": "D:/your-media/clip-01.mp4"
+        },
+        {
+          "duration": 4,
+          "in": 1.2,
+          "src": "D:/your-media/clip-01.mp4"
+        }
+      ],
+      "name": "主画面",
+      "type": "video",
+      "start": 0
+    },
+    {
+      "texts": [
+        {
+          "duration": 3,
+          "style": {
+            "size": 9,
+            "transformY": -0.6
+          },
+          "text": "竖屏背景轨验证",
+          "start": 0.3
+        }
+      ],
+      "name": "主标题",
+      "type": "text"
+    }
+  ],
+  "canvas": {
+    "fps": 30,
+    "width": 1080,
+    "height": 1920
+  }
+}

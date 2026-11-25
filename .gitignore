@@ -1,0 +1,35 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+envs/
+
+# 安装脚本生成的启动器（本机路径，不该进仓库）
+start-jianying-mcp.bat
+
+# 工具与模型（体积大，各自下载）
+tools/
+models/
+
+# 运行产物
+out/
+mcp-test/
+*.mp4
+*.wav
+*.mp3
+*.zip
+
+# 本地草稿
+drafts/
+*.tmp
+
+selfcheck-out/
+
+_v/
+_cov/
+.cover-candidates/
+.background/
+docs/重建仓库步骤.md
